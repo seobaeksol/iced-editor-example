@@ -1,0 +1,10 @@
+[package]
+name = "iced-editor"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+iced = { version="0.13.1" , features = ["debug"] }
+iced_futures = "0.13.2"
+rfd = "0.15.1"
+tokio = { version = "1.41.1", features = ["full", "fs"] }
