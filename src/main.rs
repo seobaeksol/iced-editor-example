@@ -2,14 +2,18 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use iced::widget::{button, column, container, horizontal_space, row, text, text_editor, Space};
-use iced::{Element, Length, Task, Theme};
+use iced::widget::{button, column, container, horizontal_space, row, text, text_editor, tooltip, Space};
+use iced::{Element, Font, Length, Settings, Task, Theme};
 use iced_futures::MaybeSend;
 
 fn main() -> iced::Result {
     iced::application(Editor::title, Editor::update, Editor::view)
         .theme(Editor::theme)
         .executor::<TokioExecutor>()
+        .settings(Settings {
+            fonts: vec![include_bytes!("../fonts/editor-icon.ttf").as_slice().into()],
+            ..Settings::default()
+        })
         .run_with(Editor::initialize)
 }
 
@@ -95,10 +99,11 @@ impl Editor {
 
     fn view(&self) -> Element<Message> {
         let controls = row![
-            button("New").on_press(Message::New),
-            button("Open").on_press(Message::Open),
-            button("Save").on_press(Message::Save)
-        ];
+            action(new_icon(), "New", Message::New),
+            action(open_icon(), "Open", Message::Open),
+            action(save_icon(), "Save", Message::Save)
+        ].spacing(10);
+
         let input = text_editor(&self.content)
             .on_action(Message::Edit)
             .height(Length::Fill);
@@ -139,7 +144,7 @@ impl Editor {
             ]
         };
 
-        let body = column![controls, input, status_bar];
+        let body = column![controls, input, status_bar].spacing(5);
 
         container(body).padding(10).into()
     }
@@ -215,4 +220,25 @@ impl iced::Executor for TokioExecutor {
         let _guard = tokio::runtime::Runtime::enter(&self.0);
         f()
     }
+}
+
+fn action<'a>(content: Element<'a, Message>, label: &'a str, on_press: Message) -> Element<'a, Message> {
+    tooltip(button(container(content).center_x(30)).on_press(on_press).padding([5, 10]), label, tooltip::Position::FollowCursor).into()
+}
+
+fn new_icon<'a>() -> Element<'a, Message> {
+    icon('\u{e800}')
+}
+
+fn save_icon<'a>() -> Element<'a, Message> {
+    icon('\u{f115}')
+}
+
+fn open_icon<'a>() -> Element<'a, Message> {
+    icon('\u{e801}')
+}
+fn icon<'a>(codepoint: char) -> Element<'a, Message> {
+    const ICON_FONT: Font = Font::with_name("editor-icon");
+
+    text(codepoint).font(ICON_FONT).into()
 }
