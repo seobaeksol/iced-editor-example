@@ -42,6 +42,7 @@ struct Editor {
     content: text_editor::Content,
     error: Option<Error>,
     theme: highlighter::Theme,
+    is_modified: bool,
 }
 
 impl Editor {
@@ -51,6 +52,7 @@ impl Editor {
             error: None,
             path: None,
             theme: highlighter::Theme::SolarizedDark,
+            is_modified: false,
         }
     }
 
@@ -76,6 +78,10 @@ impl Editor {
     fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Edit(action) => {
+                if action.is_edit() {
+                    self.is_modified = true;
+                }
+
                 self.content.perform(action);
                 Task::none()
             }
@@ -102,6 +108,7 @@ impl Editor {
             }
             Message::FileSaved(Ok(path)) => {
                 self.path = Some(path);
+                self.is_modified = false;
 
                 Task::none()
             }
@@ -119,9 +126,13 @@ impl Editor {
 
     fn view(&self) -> Element<Message> {
         let controls = row![
-            action(new_icon(), "New", Message::New),
-            action(open_icon(), "Open", Message::Open),
-            action(save_icon(), "Save", Message::Save),
+            action(new_icon(), "New", Some(Message::New)),
+            action(open_icon(), "Open", Some(Message::Open)),
+            action(
+                save_icon(),
+                "Save",
+                self.is_modified.then_some(Message::Save)
+            ),
             horizontal_space(),
             pick_list(
                 highlighter::Theme::ALL,
@@ -259,12 +270,20 @@ impl iced::Executor for TokioExecutor {
 fn action<'a>(
     content: Element<'a, Message>,
     label: &'a str,
-    on_press: Message,
+    on_press: Option<Message>,
 ) -> Element<'a, Message> {
+    let is_modified = on_press.is_some();
     tooltip(
         button(container(content).center_x(30))
-            .on_press(on_press)
-            .padding([5, 10]),
+            .on_press_maybe(on_press)
+            .padding([5, 10])
+            .style(move |theme, status| {
+                if is_modified {
+                    button::primary(theme, status)
+                } else {
+                    button::secondary(theme, status)
+                }
+            }),
         label,
         tooltip::Position::FollowCursor,
     )
@@ -276,11 +295,11 @@ fn new_icon<'a>() -> Element<'a, Message> {
 }
 
 fn save_icon<'a>() -> Element<'a, Message> {
-    icon('\u{f115}')
+    icon('\u{e801}')
 }
 
 fn open_icon<'a>() -> Element<'a, Message> {
-    icon('\u{e801}')
+    icon('\u{f115}')
 }
 fn icon<'a>(codepoint: char) -> Element<'a, Message> {
     const ICON_FONT: Font = Font::with_name("editor-icon");
