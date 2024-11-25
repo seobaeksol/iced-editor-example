@@ -3,11 +3,15 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use iced::highlighter;
+use iced::keyboard;
+use iced::keyboard::Key;
 use iced::widget::{
     button, column, container, horizontal_space, pick_list, row, text, text_editor, tooltip, Space,
 };
 use iced::{Element, Font, Length, Settings, Task, Theme};
-use iced_futures::MaybeSend;
+use iced_futures::{MaybeSend, Subscription};
+
+// Let's see if it works!
 
 fn main() -> iced::Result {
     iced::application(Editor::title, Editor::update, Editor::view)
@@ -23,6 +27,7 @@ fn main() -> iced::Result {
             ],
             ..Settings::default()
         })
+        .subscription(Editor::subscription)
         .run_with(Editor::initialize)
 }
 
@@ -193,6 +198,13 @@ impl Editor {
         let body = column![controls, input, status_bar].spacing(5);
 
         container(body).padding(10).into()
+    }
+
+    fn subscription(&self) -> Subscription<Message> {
+        keyboard::on_key_press(|key_code, modifiers| match key_code {
+            Key::Character(c) if c == "s" && modifiers.control() => Some(Message::Save),
+            _ => None,
+        })
     }
 }
 
