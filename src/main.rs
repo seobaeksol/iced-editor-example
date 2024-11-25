@@ -2,6 +2,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use iced::highlighter;
 use iced::widget::{
     button, column, container, horizontal_space, row, text, text_editor, tooltip, Space,
 };
@@ -115,7 +116,15 @@ impl Editor {
 
         let input = text_editor(&self.content)
             .on_action(Message::Edit)
-            .height(Length::Fill);
+            .height(Length::Fill)
+            .highlight(
+                self.path
+                    .as_ref()
+                    .and_then(|path| path.extension()?.to_str())
+                    .unwrap_or("rs")
+                    ,
+                highlighter::Theme::SolarizedDark,
+            );
 
         let status_bar = {
             let file_path = if let Some(Error::IOFailed(error)) = self.error.as_ref() {
@@ -211,7 +220,7 @@ enum Error {
 struct TokioExecutor(tokio::runtime::Runtime);
 
 impl iced::Executor for TokioExecutor {
-    fn new() -> Result<Self, iced::futures::io::Error>
+    fn new() -> Result<Self, io::Error>
     where
         Self: Sized,
     {
