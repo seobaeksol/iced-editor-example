@@ -98,6 +98,7 @@ impl Editor {
             Message::New => {
                 self.path = None;
                 self.content = text_editor::Content::new();
+                self.is_modified = true;
 
                 Task::none()
             }
