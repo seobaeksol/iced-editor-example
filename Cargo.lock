@@ -1480,7 +1480,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced-editor"
+name = "iced-editor-example"
 version = "0.1.0"
 dependencies = [
  "iced",
