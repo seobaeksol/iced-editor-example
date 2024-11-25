@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use iced::highlighter;
 use iced::widget::{
-    button, column, container, horizontal_space, row, text, text_editor, tooltip, Space,
+    button, column, container, horizontal_space, pick_list, row, text, text_editor, tooltip, Space,
 };
 use iced::{Element, Font, Length, Settings, Task, Theme};
 use iced_futures::MaybeSend;
@@ -34,12 +34,14 @@ enum Message {
     Save,
     FileOpened(Result<(PathBuf, Arc<String>), Error>),
     FileSaved(Result<PathBuf, Error>),
+    ThemeSelected(highlighter::Theme),
 }
 
 struct Editor {
     path: Option<PathBuf>,
     content: text_editor::Content,
     error: Option<Error>,
+    theme: highlighter::Theme,
 }
 
 impl Editor {
@@ -48,6 +50,7 @@ impl Editor {
             content: text_editor::Content::default(),
             error: None,
             path: None,
+            theme: highlighter::Theme::SolarizedDark,
         }
     }
 
@@ -63,7 +66,11 @@ impl Editor {
     }
 
     fn theme(&self) -> Theme {
-        Theme::Dark
+        if self.theme.is_dark() {
+            Theme::Dark
+        } else {
+            Theme::Light
+        }
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {
@@ -103,6 +110,10 @@ impl Editor {
 
                 Task::none()
             }
+            Message::ThemeSelected(theme) => {
+                self.theme = theme;
+                Task::none()
+            }
         }
     }
 
@@ -110,7 +121,13 @@ impl Editor {
         let controls = row![
             action(new_icon(), "New", Message::New),
             action(open_icon(), "Open", Message::Open),
-            action(save_icon(), "Save", Message::Save)
+            action(save_icon(), "Save", Message::Save),
+            horizontal_space(),
+            pick_list(
+                highlighter::Theme::ALL,
+                Some(self.theme),
+                Message::ThemeSelected
+            ),
         ]
         .spacing(10);
 
@@ -121,9 +138,8 @@ impl Editor {
                 self.path
                     .as_ref()
                     .and_then(|path| path.extension()?.to_str())
-                    .unwrap_or("rs")
-                    ,
-                highlighter::Theme::SolarizedDark,
+                    .unwrap_or("rs"),
+                self.theme,
             );
 
         let status_bar = {
