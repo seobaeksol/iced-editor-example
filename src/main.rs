@@ -2,7 +2,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use iced::widget::{button, column, container, horizontal_space, row, text, text_editor, tooltip, Space};
+use iced::widget::{
+    button, column, container, horizontal_space, row, text, text_editor, tooltip, Space,
+};
 use iced::{Element, Font, Length, Settings, Task, Theme};
 use iced_futures::MaybeSend;
 
@@ -11,7 +13,13 @@ fn main() -> iced::Result {
         .theme(Editor::theme)
         .executor::<TokioExecutor>()
         .settings(Settings {
-            fonts: vec![include_bytes!("../fonts/editor-icon.ttf").as_slice().into()],
+            default_font: Font::with_name("JetBrains Mono"),
+            fonts: vec![
+                include_bytes!("../fonts/editor-icon.ttf").as_slice().into(),
+                include_bytes!("../fonts/JetBrainsMono-Regular.ttf")
+                    .as_slice()
+                    .into(),
+            ],
             ..Settings::default()
         })
         .run_with(Editor::initialize)
@@ -102,7 +110,8 @@ impl Editor {
             action(new_icon(), "New", Message::New),
             action(open_icon(), "Open", Message::Open),
             action(save_icon(), "Save", Message::Save)
-        ].spacing(10);
+        ]
+        .spacing(10);
 
         let input = text_editor(&self.content)
             .on_action(Message::Edit)
@@ -222,8 +231,19 @@ impl iced::Executor for TokioExecutor {
     }
 }
 
-fn action<'a>(content: Element<'a, Message>, label: &'a str, on_press: Message) -> Element<'a, Message> {
-    tooltip(button(container(content).center_x(30)).on_press(on_press).padding([5, 10]), label, tooltip::Position::FollowCursor).into()
+fn action<'a>(
+    content: Element<'a, Message>,
+    label: &'a str,
+    on_press: Message,
+) -> Element<'a, Message> {
+    tooltip(
+        button(container(content).center_x(30))
+            .on_press(on_press)
+            .padding([5, 10]),
+        label,
+        tooltip::Position::FollowCursor,
+    )
+    .into()
 }
 
 fn new_icon<'a>() -> Element<'a, Message> {
