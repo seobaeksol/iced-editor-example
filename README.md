@@ -4,7 +4,8 @@
 
 I modified it myself because [the Youtube tutorial](https://www.youtube.com/watch?v=gcBJ7cPSALo) was not compatible with
 version 0.13.1.
-![image](https://github.com/user-attachments/assets/dcb2c34e-5ce4-4448-a377-c92c1684f0a0)
+
+<img src="https://github.com/user-attachments/assets/dcb2c34e-5ce4-4448-a377-c92c1684f0a0"  width="513" height="400"/>
 
 ## Dependencies
 
